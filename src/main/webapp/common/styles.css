@@ -1,0 +1,66 @@
+header,
+footer {
+	text-align: center;
+	background: #ffffe0;
+}
+ul {
+	display: inline-flex;
+	margin: 0 0 0 -40px;
+}
+li {
+	list-style: none;
+	margin-right: 20px;
+}
+li.show {
+	border-bottom: 3px solid black;
+}
+a {
+	text-decoration: none;
+}
+table {
+	width: 80%;
+	margin: 20px auto;
+}
+td {
+	text-align: center;
+}
+td:nth-child(3) {
+	text-align: left;
+}
+h2 {
+	margin: 10px auto;
+	padding: 0;
+	text-align: center;
+}
+h2 {
+	width: 80%;
+	background: #ffffe0;
+}
+form{
+	display:block;
+	text-align: center;
+	margin: 0 auto;
+}
+button {
+	background: none;
+	border: none;
+	cursor: pointer;
+}
+button[type="submit"] {
+	border: 1px solid black;
+}
+
+
+input[type="date"].show {
+	opacity: 0.2;	
+}
+.date.alert {
+	color: red;
+}
+.date.end {
+	color: rgba(0, 0, 0, 0.2);
+}
+
+.edit-task {
+	width: 95%;
+}
