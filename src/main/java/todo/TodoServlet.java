@@ -24,8 +24,6 @@ public class TodoServlet extends HttpServlet {
 		HttpSession session = request.getSession();
 		String sortSession = (String) session.getAttribute("sortSession");
 		String orderSession = (String) session.getAttribute("orderSession");
-		System.out.println(sortSession);
-		System.out.println(orderSession);
 
 		if (sortSession == null || sortSession.isEmpty()) {
 			sortSession = "id";
@@ -33,9 +31,7 @@ public class TodoServlet extends HttpServlet {
 		if (orderSession == null || orderSession.isEmpty()) {
 			orderSession = "DESC";
 		}
-		System.out.println(sortSession);
-		System.out.println(orderSession);
-
+		
 		session.setAttribute("sortSession", sortSession);
 		session.setAttribute("orderSession", orderSession);
 

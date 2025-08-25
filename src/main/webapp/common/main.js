@@ -1,27 +1,22 @@
 'use strict'
 
-// ヘッダーの li 要素を全部取得
-const headerItems = document.querySelectorAll('ul li');
-
-// クリックした li の位置を保存
-headerItems.forEach((li, index) => {
+//ナビ項目の下に印ーーーーーーーーーーーーーーー
+const naviList = document.querySelectorAll('ul li');
+naviList.forEach((li, index) => {// クリック位置を保存
   li.addEventListener('click', () => {
-    sessionStorage.setItem('activeHeaderIndex', index);
+    sessionStorage.setItem('clickNavi', index);
   });
 });
+document.addEventListener('DOMContentLoaded', () => {// リロード後にクリック位置取得
+  const sessionNavi = sessionStorage.getItem('clickNavi');
+  if (sessionNavi === null) return;
 
-// リロード後に復元
-document.addEventListener('DOMContentLoaded', () => {
-  const savedIndex = sessionStorage.getItem('activeHeaderIndex');
-  if (savedIndex === null) return;
-
-  headerItems.forEach(li => li.classList.remove('show'));
-  headerItems[savedIndex].classList.add('show');
+  naviList.forEach(li => li.classList.remove('show'));
+  naviList[sessionNavi].classList.add('show');
 });
-
-//３日前、赤色に
-document.addEventListener('DOMContentLoaded', highlightDates);
-function highlightDates() {	
+//３日前、赤色ーーーーーーーーーーーーーーー
+document.addEventListener('DOMContentLoaded', colorDates);
+function colorDates() {	
   	const tds = document.querySelectorAll("tbody .date");
 	let now = new Date();
 	now.setHours(0, 0, 0, 0);
@@ -41,8 +36,7 @@ function highlightDates() {
 		}
 	});
 }
-
-//ラジオボタンの解除
+//ラジオボタンの解除ーーーーーーーーーーーーーーー
 const radio = document.querySelectorAll('input[type="radio"]');
 const ds = document.get
 radio.forEach(r => {
@@ -56,9 +50,7 @@ radio.forEach(r => {
 		}
 	});
 });
-
-
-//矢印の向きと薄さを変える
+//矢印の向きと薄さを変えるーーーーーーーーーーーーーーー」
 const searchStartDate = document.getElementById('searchStartDate');
 const searchSingleDate = document.getElementById('searchSingleDate');
 const searchEndDate = document.getElementById('searchEndDate');
@@ -81,8 +73,7 @@ searchSingleDate.addEventListener('click', function() {
 	searchSingleDate.classList.remove("show");
 	searchEndDate.classList.add("show");
 });
-
-//非同期初期画面
+//非同期初期画面ーーーーーーーーーーーーーーー
 document.addEventListener("DOMContentLoaded", function() {
   if (window.location.pathname.endsWith("index2.jsp")) {
     newList();
@@ -95,58 +86,53 @@ function newList() {
     headers: { "X-Requested-With": "XMLHttpRequest" }
   })
   
-    .then(res => res.json())
-    
-    .then(todoList => {
-      const tbody = document.querySelector("tbody");
-
-      todoList.forEach(t => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = createHTML(t);
-        tbody.appendChild(tr);
-      });
-
-      highlightDates();
-      
-    })
-    .catch(console.error);
+	.then(res => res.json())
+	.then(todoList => {
+		const tbody = document.querySelector("tbody");
+	  todoList.forEach(t => {
+		const tr = document.createElement("tr");
+	    tr.innerHTML = createHTML(t);
+	    tbody.appendChild(tr);
+	  });
+	  colorDates();
+	})
+	.catch(console.error);
 }
-
-
-
-
-//非同期、検索フォーム
+//非同期、検索フォームーーーーーーーーーーーーーーー
 const searchForm = document.getElementById('searchForm');
 searchForm.addEventListener('submit', function(e) {
   e.preventDefault();//他のデフォルトの動作をしない クリック後のリロードを防ぐ
 
   fetch("SearchServlet", {
     method: "POST",
-    headers: { "X-Requested-With": "XMLHttpRequest" },
-    body: new URLSearchParams(new FormData(this))
-//    URLSearchParams = formを渡すとサーブレットが受け取れるapplication/x-www-form-urlencoded へ変換。
-//    FormData = ブラウザ標準オブジェクト。formを渡すと入力内容をまとめたオブジェクトになる。
+    headers: { "X-Requested-With": "XMLHttpRequest" },// Ajaxのリクエストを表すタグ
+    body: new URLSearchParams(new FormData(this))   // "id=123&status=true" フォーム形式と同じになってサーブレットでparameterとして受け取れる。
+//    URLSearchParams                                                 formを渡すとサーブレットが受け取れるapplication/x-www-form-urlencoded へ変換。
+//    FormData                                                             ブラウザ標準オブジェクト。formを渡すと入力内容をまとめたオブジェクトになる。
+//    body: ({ id: id, status: status })                              [object Object] ただのオブジェクト
+//    body: JSON.stringify({ id: id, status: status })           {"id":123,"status":"true"} JS用のキーと値
   })
   
-  .then(res => res.json())
+  .then(res => res.json()) //レスポンスをjsonに
   .then(todoList => {
+	if (todoList.error) {
+    	alert(todoList.error);
+    	return;
+  	}
 	const tbody = document.querySelector("tbody");
     tbody.innerHTML = ""; 
     todoList.forEach(t => {
 		const tr = document.createElement("tr");
 		tr.innerHTML = createHTML(t);
-      tbody.appendChild(tr);
+		tbody.appendChild(tr);
     });
-    highlightDates();
+    colorDates();
   }).catch(console.error);
 });
-
-
 //非同期、並び替えフォームーーーーーーーーーーーーーー
 const sortForm = document.getElementById('sortForm');
 sortForm.addEventListener('submit', function(e) {
 e.preventDefault();
-console.log('ここまで');
 
   fetch("SortServlet", {
     method: "POST",
@@ -161,58 +147,11 @@ console.log('ここまで');
     todoList.forEach(t => {
 		const tr = document.createElement("tr");
 		tr.innerHTML = createHTML(t);
-      tbody.appendChild(tr);
+		tbody.appendChild(tr);
     });
-    highlightDates();
+    colorDates();
   }).catch(console.error);
 });
-
-
-//非同期、状態変化ーーーーーーーーーーーーーー
-function updateStatus(id, status) {
-  fetch("StatusServlet", {
-    method: "POST",
-    headers: { "X-Requested-With": "XMLHttpRequest" },
-    body: new URLSearchParams({ id: id, status: status })
-  }).then(r => r.text())
-    .then(console.log)
-    .catch(console.error);
-}
-
-//非同期、削除ーーーーーーーーーーーーーー
-function deleteTodo(btn, id) {
-  if (!confirm("削除しますか？")) {
-	  return;
-	  }
-	  console.log(id);  
-  fetch("DeleteServlet", {
-    method: "POST",
-    headers: {"Content-Type": "application/x-www-form-urlencoded", "X-Requested-With": "XMLHttpRequest"},
-    body: `id=${id}`
-  }).then(r => {
-    if (r.ok) {
-	    const tr = btn.closest('tr');
-	    if (tr) {
-			tr.remove();
-		}      
-		console.log('削除処理 成功');
-    }
-  }).catch(console.error);
-}
-
-
-
-//タスクリスト表示HTMLーーーーーーーーーーーーーー
-function createHTML(t) {
-	return `
-		<td><input type="checkbox" name="status" value="true" ${t.status ? "checked" : ""} onchange="updateStatus('${t.id}', this.checked)"></td>
-		<td>${t.id}</td>
-		<td><button type="button" onclick="editTaskBox(this, '${t.id}', '${t.task}', '${t.date}')">${t.task}</button></td>
-		<td><button class="date" type="button" onclick="editDateBox(this, '${t.id}', '${t.task}', '${t.date}')">${t.date}</button></td>
-		<td><button type="button" onclick="deleteTodo(this, '${t.id}')"><i class="far fa-trash-alt fa-1x icon"></i></button></td>
-	`;
-		//<td><button id="date" type="button" onclick="editDateBox(this, '${t.id}', '${t.task}', '${t.date}')">${t.date}</button></td>
-}
 //非同期追加ーーーーーーーーーーーーーー
 const addForm = document.getElementById('addForm');
 addForm.addEventListener('submit', function(e) {
@@ -225,6 +164,10 @@ addForm.addEventListener('submit', function(e) {
   })
   .then(res => res.json())
   .then(todoList => {
+	if (todoList.error) {
+    	alert(todoList.error);
+    	return;
+  	}
     const tbody = document.querySelector("tbody");
     tbody.innerHTML = ""; 
     todoList.forEach(t => {
@@ -232,39 +175,31 @@ addForm.addEventListener('submit', function(e) {
       tr.innerHTML = createHTML(t);
       tbody.appendChild(tr);
     });
-    highlightDates();
+    colorDates();
     addForm.reset();
   })
   .catch(console.error);
 });
-
-
-
-//非同期日付変更ーーーーーーーーーーーーーー
-function editDateBox(btn, id, task, date) {
-	btn.closest('td').innerHTML = `
-		<input type="date" value="${date}" autofocus onchange="updateDate(this, '${id}', '${task}', this.value)">
+//タスクリスト表示HTMLーーーーーーーーーーーーーー
+function createHTML(t) {
+	return `
+		<td><input type="checkbox" name="status" value="true" ${t.status ? "checked" : ""} onchange="updateStatus('${t.id}', this.checked)"></td>
+		<td>${t.id}</td>
+		<td><button type="button" onclick="editTaskBox(this, '${t.id}', '${t.task}', '${t.date}')">${t.task}</button></td>
+		<td><button class="date" type="button" onclick="editDateBox(this, '${t.id}', '${t.task}', '${t.date}')">${t.date}</button></td>
+		<td><button type="button" onclick="deleteTodo(this, '${t.id}')"><i class="far fa-trash-alt fa-1x icon"></i></button></td>
 	`;
 }
-function updateDate(btn, id, task, date) {
-	console.log("編集関数までは来た");
-	fetch("EditServlet", {
-		method: "POST",
-	    headers: { "X-Requested-With": "XMLHttpRequest" },
-	    body: new URLSearchParams({ id: id, task: task, date: date })
-		
-	}).then(r => {
-		if(r.ok) {
-			console.log("タスク内容変更完了");
-		}
-	});
-	btn.closest('td').innerHTML = `
-		<button class="date" type="button" onclick="editDateBox(this, '${id}', '${task}', '${date}')">${date}</button>
-	`;
-		//<button id="date" type="button" onclick="editDateBox(this, '${id}', '${task}', '${date}')">${date}</button>
-	highlightDates();
-}
+//非同期、状態変化ーーーーーーーーーーーーーー
+function updateStatus(id, status) {
+  fetch("StatusServlet", {
+    method: "POST",
+    headers: { "X-Requested-With": "XMLHttpRequest" },
+    body: new URLSearchParams({ id: id, status: status })
 
+  }).then(r => r.text())
+    .catch(console.error);
+}
 //非同期タスク変更ーーーーーーーーーーーーーー
 function editTaskBox(btn, id, task, date) {
 	btn.closest('td').innerHTML = `
@@ -272,7 +207,6 @@ function editTaskBox(btn, id, task, date) {
 	`;
 }
 function updateTask(btn, id, task, date) {
-	console.log("編集関数までは来た");
 	fetch("EditServlet", {
 		method: "POST",
 	    headers: { "X-Requested-With": "XMLHttpRequest" },
@@ -284,6 +218,53 @@ function updateTask(btn, id, task, date) {
 		}
 	});
 	btn.closest('td').innerHTML = `
-		<button type="button" onclick="editTextBox(this, '${id}', '${task}', '${date}')">${task}</button>
+		<button type="button" onclick="editTaskBox(this, '${id}', '${task}', '${date}')">${task}</button>
 	`;
 }
+//非同期日付変更ーーーーーーーーーーーーーー
+function editDateBox(btn, id, task, date) {
+	btn.closest('td').innerHTML = `
+		<input type="date" value="${date}" autofocus onchange="updateDate(this, '${id}', '${task}', this.value)">
+	`;
+}
+function updateDate(btn, id, task, date) {
+	fetch("EditServlet", {
+		method: "POST",
+	    headers: { "X-Requested-With": "XMLHttpRequest" },
+	    body: new URLSearchParams({ id: id, task: task, date: date })
+
+	}).then(r => {
+		if(r.ok) {
+			console.log("日付変更完了");
+		}
+	});
+	
+	btn.closest('td').innerHTML = `
+		<button class="date" type="button" onclick="editDateBox(this, '${id}', '${task}', '${date}')">${date}</button>
+	`;
+	colorDates();
+	}; 
+
+//非同期、削除ーーーーーーーーーーーーーー
+function deleteTodo(btn, id) {
+  if (!confirm("削除しますか？")) {
+	  return;
+	  }
+  fetch("DeleteServlet", {
+    method: "POST",
+    headers: {"Content-Type": "application/x-www-form-urlencoded", "X-Requested-With": "XMLHttpRequest"}, //ヘッダーにフォーム形式を書くパターン
+    body: `id=${id}`
+  }).then(r => {
+    if (r.ok) {
+	    const tr = btn.closest('tr');
+	    if (tr) {
+			tr.remove();
+		}
+    }
+  }).catch(console.error);
+}
+
+
+
+
+	    

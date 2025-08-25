@@ -62,15 +62,13 @@ public class CommonProcess {
 		return todo;
 	}
 
-	public static void getJsonList(HttpServletResponse response, List<Todo> todoList)
-			throws ServletException, IOException {
-		Gson gson = new GsonBuilder()
-				.registerTypeAdapter(LocalDate.class,
-						(JsonSerializer<LocalDate>) (src, typeOfSrc, ctx) -> new JsonPrimitive(src.toString()))
+	public static void getJsonList(HttpServletResponse response, List<Todo> todoList) throws ServletException, IOException {
+		Gson gson = new GsonBuilder()// LocalDateを整形
+				.registerTypeAdapter(LocalDate.class, (JsonSerializer<LocalDate>) (src, typeOfSrc, ctx) -> new JsonPrimitive(src.toString()))
 				.create();
 
-		String json = gson.toJson(todoList);
-		response.getWriter().write(json);
+		String json = gson.toJson(todoList); //todoListをjsonにする処理。日付が出てきたら、gsonの形式に
+		response.getWriter().write(json);//レスポンスにjsonの文字列を書いて格納
 	}
 
 	//DAOの共通。微妙？ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

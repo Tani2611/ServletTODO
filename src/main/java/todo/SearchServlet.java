@@ -27,14 +27,21 @@ public class SearchServlet extends HttpServlet {
 				request.getParameter("searchSingleDate"),
 				request.getParameter("searchEndDate"),
 				request.getParameter("searchRadioStatus"));
+		
+		
+		
 
-		if (!searchTodo.startDate().isEmpty() && !searchTodo.singleDate().isEmpty()
-				&& !searchTodo.endDate().isEmpty()) {
-			System.out.println("ここまできた");
-			request.setAttribute("searchTodo", searchTodo);
-			request.setAttribute("msg", "入力に間違いがあります");
-			request.getRequestDispatcher("TodoServlet").forward(request, response);
-			return;
+		if (!searchTodo.startDate().isEmpty() && !searchTodo.singleDate().isEmpty() && !searchTodo.endDate().isEmpty()) {
+			if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
+				response.setContentType("application/json; charset=UTF-8");
+				response.getWriter().write("{\"error\": \"入力に間違いがあります\"}");
+				return;
+			}else {
+				request.setAttribute("searchTodo", searchTodo);
+				request.setAttribute("msg", "入力に間違いがあります");
+				request.getRequestDispatcher("TodoServlet").forward(request, response);
+				return;
+			}
 		}
 
 		List<Todo> todoList = null;

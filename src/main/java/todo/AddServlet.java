@@ -27,12 +27,25 @@ public class AddServlet extends HttpServlet {
 
 		Todo todo = CommonProcess.getParameter(request);
 
-		if (request.getParameter("task").isEmpty() || request.getParameter("date").isEmpty()) {
-			request.setAttribute("msg", "入力に間違いがあります");
-			request.setAttribute("todo", todo);
-			request.getRequestDispatcher("add.jsp").forward(request, response);
-			return;
+
+		if (request.getParameter("task").isEmpty() || request.getParameter("date").isEmpty())  {
+			
+			if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
+				response.setContentType("application/json; charset=UTF-8");
+				response.getWriter().write("{\"error\": \"入力に間違いがあります\"}");
+				return;
+				
+			}else {
+				
+				request.setAttribute("msg", "入力に間違いがあります");
+				request.setAttribute("todo", todo);
+				request.getRequestDispatcher("add.jsp").forward(request, response);
+				return;
+				
+			}
 		}
+
+		
 
 		//		CommonProcess.getDaoMethod("insert", todo); うまく動く
 		//		List<Todo> todoList = CommonProcess.getDaoTodoList("getTodoList", "sortSession", "orderSession"); 動かない
