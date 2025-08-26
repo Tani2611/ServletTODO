@@ -36,23 +36,23 @@ public class EditServlet extends HttpServlet {
 		CommonProcess.getDefaultCode(request, response);
 
 		Todo todo = CommonProcess.getParameter(request);
-		
-		if (request.getParameter("task").isEmpty() || request.getParameter("date").isEmpty())  {
-			
+
+		if (request.getParameter("task").isEmpty() || request.getParameter("date").isEmpty()) {
+
 			if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
 
 				System.out.println("ここまで来た");
 				response.setContentType("application/json; charset=UTF-8");
 				response.getWriter().write("{\"error\": \"入力に間違いがあります\"}");
 				return;
-				
-			}else {
-				
+
+			} else {
+
 				request.setAttribute("msg", "入力に間違いがあります");
 				request.setAttribute("todo", todo);
 				request.getRequestDispatcher("edit.jsp").forward(request, response);
 				return;
-				
+
 			}
 		}
 
@@ -64,6 +64,8 @@ public class EditServlet extends HttpServlet {
 
 		if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
 			System.out.println("EditServlet 非同期");
+			response.setContentType("application/json; charset=UTF-8");
+			response.getWriter().write("{\"ok\":true}");
 		} else {
 			System.out.println("EditServlet 同期");
 			request.setAttribute("msg", "編集しました");
