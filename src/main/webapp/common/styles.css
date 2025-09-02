@@ -46,14 +46,14 @@ button {
 	border: none;
 	cursor: pointer;
 }
-button[type="submit"] {
+button[type="submit"],
+button[type="reset"] {
 	border: 1px solid black;
 }
-
-
-input[type="date"].show {
-	opacity: 0.2;	
+input[type="text"] {
+	width: 250px;
 }
+
 .date.alert {
 	color: red;
 }
@@ -61,6 +61,24 @@ input[type="date"].show {
 	color: rgba(0, 0, 0, 0.2);
 }
 
-.edit-task {
+input[type="text"].edit-task {
 	width: 95%;
+}
+thead th {
+	cursor: pointer;
+}
+.delete-th {
+	pointer-events: none;
+}
+thead th.showUp {
+	background: #ffffe0;
+}
+thead th.showUp::after {
+	content: "▲";
+}
+thead th.showDown {	
+	background: #ffffe0;
+}
+thead th.showDown::after {
+  content: "▼";
 }

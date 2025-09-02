@@ -6,6 +6,7 @@ import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +20,6 @@ public class TodoDao {
 	List<Todo> todoList = new ArrayList<>();
 
 	public void insert(Todo todo) throws Exception {
-		Class.forName(DRIVER); // JDBCの初期化処理
 		try (Connection con = DriverManager.getConnection(URL, ID, PS); // DB接続
 				PreparedStatement st = con.prepareStatement("INSERT INTO todo(task, date) VALUES(?, ?)");) { // 指定DBにSQL文を投げる
 
@@ -30,7 +30,6 @@ public class TodoDao {
 	}
 
 	public void update(Todo todo) throws Exception {
-		Class.forName(DRIVER);
 		try (Connection con = DriverManager.getConnection(URL, ID, PS);
 				PreparedStatement st = con.prepareStatement("UPDATE todo SET task = ?, date = ? WHERE todo.id = ? ");) {
 
@@ -42,77 +41,52 @@ public class TodoDao {
 	}
 
 	public void updateStatus(Todo todo) throws Exception {
-		Class.forName(DRIVER);
-
 		try (Connection con = DriverManager.getConnection(URL, ID, PS);
 				PreparedStatement st = con.prepareStatement("UPDATE todo SET status = ? WHERE id = ? ")) {
 			st.setBoolean(1, todo.isStatus());
 			st.setInt(2, todo.getId()); //Date ↔ LocalDate
 			st.executeUpdate(); //insert update delte用
 		}
-
 	}
 
 	public void delete(Todo todo) throws Exception {
-		Class.forName(DRIVER);
-
 		try (Connection con = DriverManager.getConnection(URL, ID, PS);
 				PreparedStatement st = con.prepareStatement("DELETE FROM todo WHERE id = ?");) {
 
 			st.setInt(1, todo.getId());
-			st.executeUpdate(); //insert update delte用
+			int count = st.executeUpdate(); //insert update delte用
+			System.out.println("削除件数：" + count);
+			
 		}
 	}
 
 	public Todo getTodo(Todo todo) throws Exception {
-		Class.forName(DRIVER);
 		try (Connection con = DriverManager.getConnection(URL, ID, PS);
 				PreparedStatement st = con.prepareStatement("SELECT * FROM todo WHERE id = ?");) {
 
 			st.setInt(1, todo.getId());
 
-			try (ResultSet rs = st.executeQuery()) { //SELECT用
-				while (rs.next()) {
-					int id = rs.getInt("id");
-					String task = rs.getString("task");
-					LocalDate date = rs.getDate("date").toLocalDate(); // Date ↔ LocalDate
-					boolean status = rs.getBoolean("status");
-
-					todo = new Todo(id, task, date, status);
-				}
+			try(ResultSet rs = st.executeQuery()) {
+				return createTodo(rs);				
 			}
-
 		}
-		return todo;
-
 	}
 
-	public List<Todo> getTodoList(String sort, String order) throws Exception {
+	public List<Todo> getTodoList(Sort sort) throws Exception {
 		Class.forName(DRIVER);
-		String sql = "SELECT * FROM todo ORDER BY" + " " + sort + " " + order;
+		String sql = "SELECT * FROM todo ORDER BY" + " " + sort.sort() + " " + sort.order() + "," + "id" + " " + "DESC";
 		try (Connection con = DriverManager.getConnection(URL, ID, PS);
 				PreparedStatement st = con.prepareStatement(sql);
 				ResultSet rs = st.executeQuery();) {
 
-			while (rs.next()) {
-				int id = rs.getInt("id");
-				String task = rs.getString("task");
-				LocalDate date = rs.getDate("date").toLocalDate(); // Date ↔ LocalDate
-				boolean status = rs.getBoolean("status");
-
-				todoList.add(new Todo(id, task, date, status));
-			}
+			return createTodoList(rs);
 		}
-		return todoList;
+
 	}
 
-	public List<Todo> search(Search searchTodo, String sort, String order)
-			throws Exception {
-		Class.forName(DRIVER);
-
+	public List<Todo> search(Search searchTodo, Sort sort) throws Exception {
 		String task = null;
 		Date startDate = null;
-		Date singleDate = null;
 		Date endDate = null;
 		String status = null;
 
@@ -126,10 +100,6 @@ public class TodoDao {
 			startDate = java.sql.Date.valueOf(searchTodo.startDate());
 		}
 
-		if (searchTodo.singleDate() != null && !searchTodo.singleDate().isEmpty()) {
-			singleDate = java.sql.Date.valueOf(searchTodo.singleDate());
-		}
-
 		if (searchTodo.endDate() != null && !searchTodo.endDate().isEmpty()) {
 			endDate = java.sql.Date.valueOf(searchTodo.endDate());
 		}
@@ -140,14 +110,13 @@ public class TodoDao {
 			status = "";
 		}
 
-		boolean isEmptyDay = startDate == null && singleDate == null && endDate == null;
-		boolean oneDay = startDate == null && singleDate != null && endDate == null;
-		boolean betweenDay = startDate != null && singleDate == null && endDate != null;
-		boolean leftDay = startDate != null && singleDate == null && endDate == null;
-		boolean rightDay = startDate == null && singleDate == null && endDate != null;
+		boolean betweenDay = startDate != null && endDate != null;
+		boolean leftDay = startDate != null && endDate == null;
+		boolean rightDay = startDate == null && endDate != null;
 
 		boolean trueStatus = status.equals("trueStatus");
 		boolean falseStatus = status.equals("falseStatus");
+		boolean nullStatus = status.equals("nullStatus");
 
 		StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM todo");
 		List<String> sqlList = new ArrayList<>();
@@ -158,10 +127,7 @@ public class TodoDao {
 			params.add("%" + task + "%");
 		}
 
-		if (oneDay) {
-			sqlList.add(" date = ?");
-			params.add(singleDate);
-		} else if (leftDay) {
+		if (leftDay) {
 			sqlList.add(" date >= ?");
 			params.add(startDate);
 		} else if (rightDay) {
@@ -173,11 +139,11 @@ public class TodoDao {
 			params.add(endDate);
 		}
 
-		if (!status.isEmpty()) {
+		if(!nullStatus && !status.isEmpty()) {
 			sqlList.add(" \"status\" = ?");
 			if (trueStatus) {
 				params.add(true);
-			} else {
+			} else if(falseStatus){
 				params.add(false);
 			}
 		}
@@ -187,7 +153,7 @@ public class TodoDao {
 			sqlBuilder.append(String.join(" AND", sqlList));
 		}
 
-		sqlBuilder.append(" ORDER BY").append(" " + sort).append(" " + order);
+		sqlBuilder.append(" ORDER BY").append(" " + sort.sort()).append(" " + sort.order());
 
 		System.out.println("SQL = " + sqlBuilder);
 		System.out.println("値 = " + params);
@@ -199,35 +165,45 @@ public class TodoDao {
 				st.setObject(i + 1, params.get(i));
 			}
 
-			try (ResultSet rs = st.executeQuery()) {
-				while (rs.next()) {
-					int id = rs.getInt("id");
-					String task1 = rs.getString("task");
-					LocalDate date = rs.getDate("date").toLocalDate(); // Date ↔ LocalDate
-					boolean status1 = rs.getBoolean("status");
-					todoList.add(new Todo(id, task1, date, status1));
-				}
+			try(ResultSet rs = st.executeQuery()) {
+				return createTodoList(rs);				
 			}
+
 		}
-		return todoList;
 	}
 
-	public List<Todo> sort(String sort, String order) throws Exception {
-		Class.forName(DRIVER);
-		String sql = "SELECT * FROM todo ORDER BY" + " " + sort + " " + order; //ここ！SQLインジェクションの回避
-
+	public List<Todo> sort(Sort sort) throws Exception {
+		String sql = "SELECT * FROM todo ORDER BY" + " " + sort.sort() + " " + sort.order() + "," + "id" + " " + "DESC"; //ここ！SQLインジェクションの回避
+		System.out.println(sql);
 		try (Connection con = DriverManager.getConnection(URL, ID, PS);
 				PreparedStatement st = con.prepareStatement(sql);
 				ResultSet rs = st.executeQuery();) {
 
-			while (rs.next()) {
-				int id = rs.getInt("id");
-				String task = rs.getString("task");
-				LocalDate date = rs.getDate("date").toLocalDate(); // Date ↔ LocalDate
-				boolean status = rs.getBoolean("status");
-				todoList.add(new Todo(id, task, date, status));
-			}
+			return createTodoList(rs);
+		}
+	}
+	
+	public Todo createTodo(ResultSet rs) throws SQLException {
+		Todo todo = new Todo();
+		while(rs.next()) {
+			int id = rs.getInt("id");
+			String task = rs.getString("task");
+			LocalDate date = rs.getDate("date").toLocalDate(); // Date ↔ LocalDate
+			boolean status = rs.getBoolean("status");
+			todo = new Todo(id, task, date, status);
+		}
+		return todo;
+	}
+	
+	public List<Todo> createTodoList(ResultSet rs) throws SQLException {
+		while(rs.next()) {
+			int id = rs.getInt("id");
+			String task = rs.getString("task");
+			LocalDate date = rs.getDate("date").toLocalDate(); // Date ↔ LocalDate
+			boolean status = rs.getBoolean("status");
+			todoList.add(new Todo(id, task, date, status));
 		}
 		return todoList;
 	}
 }
+

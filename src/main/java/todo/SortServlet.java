@@ -9,7 +9,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 import common.CommonProcess;
 
@@ -18,23 +17,11 @@ public class SortServlet extends HttpServlet {
 	@Override
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		CommonProcess.getDefaultCode(request, response);
-		HttpSession session = request.getSession();
-		String searchSort = request.getParameter("searchSort");
-		String searchOrder = request.getParameter("searchOrder");
-
-		if (searchSort == null || searchSort.isEmpty()) {
-			searchSort = "id";
-		}
-		if (searchOrder == null || searchOrder.isEmpty()) {
-			searchOrder = "DESC";
-		}
-
-		session.setAttribute("sortSession", searchSort);
-		session.setAttribute("orderSession", searchOrder);
+		Sort sort = CommonProcess.getSort(request);
 
 		List<Todo> todoList = new ArrayList<>();
 		try {
-			todoList = new TodoDao().sort(searchSort, searchOrder);
+			todoList = new TodoDao().sort(sort);
 		} catch (Exception e) {
 			throw new ServletException(e);
 		}

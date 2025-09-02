@@ -15,14 +15,9 @@ public class DeleteServlet extends HttpServlet {
 	@Override
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		CommonProcess.getDefaultCode(request, response);
-
 		Todo todo = CommonProcess.getParameter(request);
 
-		try {
-			new TodoDao().delete(todo);
-		} catch (Exception e) {
-			throw new ServletException(e);
-		}
+		CommonProcess.getDaoMethod("delete", todo);
 
 		if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
 			System.out.println("DeleteServlet 非同期");

@@ -11,10 +11,6 @@
 	<%@ include file="common/searchInput.jsp"%>
 </form>
 
-<form id="sortForm">
-	<%@ include file="common/sortInput.jsp"%>
-</form>
-
 <table border="1" cellspacing="0">
 	<%@ include file="common/thead.jsp"%>
 	<tbody>

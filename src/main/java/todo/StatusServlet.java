@@ -16,7 +16,6 @@ public class StatusServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		CommonProcess.getDefaultCode(request, response);
-
 		Todo todo = CommonProcess.getParameter(request);
 
 		try {

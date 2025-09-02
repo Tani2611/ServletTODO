@@ -1,4 +1,4 @@
 package todo;
 
-public record Search(String task, String startDate, String singleDate, String endDate, String status) {
+public record Search(String task, String startDate, String endDate, String status) {
 }

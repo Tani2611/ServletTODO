@@ -22,5 +22,6 @@
 			<% if(msg != null) { %>
 				<p class="msg"><%= msg %></p>
 			<% } %>
+			<p>sortSession：${sortSession}　　orderSession：${orderSession}</p>
 		</header>
 		<main>

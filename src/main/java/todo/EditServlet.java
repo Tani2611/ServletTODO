@@ -14,10 +14,8 @@ import common.CommonProcess;
 public class EditServlet extends HttpServlet {
 
 	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		CommonProcess.getDefaultCode(request, response);
-
 		Todo todo = CommonProcess.getParameter(request);
 
 		try {
@@ -31,17 +29,14 @@ public class EditServlet extends HttpServlet {
 	}
 
 	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		CommonProcess.getDefaultCode(request, response);
-
 		Todo todo = CommonProcess.getParameter(request);
 
 		if (request.getParameter("task").isEmpty() || request.getParameter("date").isEmpty()) {
 
 			if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
-
-				System.out.println("ここまで来た");
+				
 				response.setContentType("application/json; charset=UTF-8");
 				response.getWriter().write("{\"error\": \"入力に間違いがあります\"}");
 				return;

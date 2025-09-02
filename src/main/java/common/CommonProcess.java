@@ -8,12 +8,14 @@ import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializer;
 
+import todo.Sort;
 import todo.Todo;
 import todo.TodoDao;
 
@@ -26,7 +28,7 @@ public class CommonProcess {
 	}
 
 	public static Todo getParameter(HttpServletRequest request) throws ServletException, IOException {
-		request.setCharacterEncoding("UTF-8");
+		//		request.setCharacterEncoding("UTF-8");
 
 		String id = request.getParameter("id");
 		String task = request.getParameter("task");
@@ -62,9 +64,34 @@ public class CommonProcess {
 		return todo;
 	}
 
-	public static void getJsonList(HttpServletResponse response, List<Todo> todoList) throws ServletException, IOException {
+	public static Sort getSort(HttpServletRequest request) {
+		HttpSession session = request.getSession();
+		String sortSession = request.getParameter("searchSort") != null
+				? request.getParameter("searchSort")
+				: (String) session.getAttribute("sortSession");
+		String orderSession = request.getParameter("searchOrder") != null
+				? request.getParameter("searchOrder")
+				: (String) session.getAttribute("orderSession");
+
+		if (sortSession == null || sortSession.isEmpty()) {
+			sortSession = "id";
+		}
+		if (orderSession == null || orderSession.isEmpty()) {
+			orderSession = "DESC";
+		}
+
+		Sort sort = new Sort(sortSession, orderSession);
+
+		session.setAttribute("sortSession", sort.sort());
+		session.setAttribute("orderSession", sort.order());
+		return sort;
+	}
+
+	public static void getJsonList(HttpServletResponse response, List<Todo> todoList)
+			throws ServletException, IOException {
 		Gson gson = new GsonBuilder()// LocalDateを整形
-				.registerTypeAdapter(LocalDate.class, (JsonSerializer<LocalDate>) (src, typeOfSrc, ctx) -> new JsonPrimitive(src.toString()))
+				.registerTypeAdapter(LocalDate.class,
+						(JsonSerializer<LocalDate>) (src, typeOfSrc, ctx) -> new JsonPrimitive(src.toString()))
 				.create();
 
 		String json = gson.toJson(todoList); //todoListをjsonにする処理。日付が出てきたら、gsonの形式に
@@ -83,6 +110,7 @@ public class CommonProcess {
 	}
 
 	//まだダメ
+	//		List<Todo> todoList = CommonProcess.getDaoTodoList("getTodoList", "sortSession", "orderSession"); 動かない
 	//	public static List<Todo> getDaoTodoList(String methodName, String sort, String order) throws ServletException {
 	//		try {
 	//			TodoDao dao = new TodoDao();

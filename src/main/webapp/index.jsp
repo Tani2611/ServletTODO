@@ -13,7 +13,6 @@
 <% List<Todo> todoList = (List<Todo>) request.getAttribute("todoList"); %>
 <table border="1" cellspacing="0">
 	<%@ include file="common/thead.jsp"%>
-	
 	<% for (Todo t : todoList) { %>
 	<tbody>
 			<tr>

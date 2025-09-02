@@ -9,7 +9,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 import common.CommonProcess;
 
@@ -17,29 +16,15 @@ import common.CommonProcess;
 public class TodoServlet extends HttpServlet {
 
 	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
-		CommonProcess.getDefaultCode(request, response);
-
-		HttpSession session = request.getSession();
-		String sortSession = (String) session.getAttribute("sortSession");
-		String orderSession = (String) session.getAttribute("orderSession");
-
-		if (sortSession == null || sortSession.isEmpty()) {
-			sortSession = "id";
-		}
-		if (orderSession == null || orderSession.isEmpty()) {
-			orderSession = "DESC";
-		}
-		
-		session.setAttribute("sortSession", sortSession);
-		session.setAttribute("orderSession", orderSession);
-
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		CommonProcess.getDefaultCode(request, response);	
+		Sort sort = CommonProcess.getSort(request);
 		String msg = (String) request.getAttribute("msg");
+		
 
 		List<Todo> todoList = new ArrayList<>();
 		try {
-			todoList = new TodoDao().getTodoList(sortSession, orderSession);
+			todoList = new TodoDao().getTodoList(sort);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -57,8 +42,7 @@ public class TodoServlet extends HttpServlet {
 	}
 
 	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doGet(request, response);
 	}
 }
