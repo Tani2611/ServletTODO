@@ -1,5 +1,4 @@
-
-package todo;
+package dao;
 
 import java.sql.Connection;
 import java.sql.Date;
@@ -10,6 +9,10 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+
+import dto.Search;
+import dto.Sort;
+import dto.Todo;
 
 public class TodoDao {
 	String DRIVER = "org.postgresql.Driver";
@@ -49,13 +52,15 @@ public class TodoDao {
 		}
 	}
 
-	public void delete(Todo todo) throws Exception {
+	public boolean delete(Todo todo) throws Exception {
 		try (Connection con = DriverManager.getConnection(URL, ID, PS);
 				PreparedStatement st = con.prepareStatement("DELETE FROM todo WHERE id = ?");) {
 
 			st.setInt(1, todo.getId());
 			int count = st.executeUpdate(); //insert update delte用
+			
 			System.out.println("削除件数：" + count);
+			return count == 0 ? false : true;
 			
 		}
 	}

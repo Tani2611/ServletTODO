@@ -63,6 +63,8 @@ function colorDates() {
 
 //追加フォームーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 const addForm = document.getElementById('addForm');
+const addTask = document.getElementById('task');
+const addDate = document.getElementById('date');
 addForm.addEventListener('submit', function(e) {
 	e.preventDefault();
 
@@ -73,12 +75,28 @@ addForm.addEventListener('submit', function(e) {
 	})
 	.then(res => res.json())
 	.then(res => {
-		if (res.error) {
-			alert(res.error);
+		if (res.nullTaskDate) {
+			addTask.classList.add('error');
+			addDate.classList.add('error');
+			alert(res.nullTaskDate);
+			return;
+		}
+		if (res.nullTask) {
+			addTask.classList.add('error');
+			addDate.classList.remove('error');
+			alert(res.nullTask);
+			return;
+		}
+		if (res.nullDate) {
+			addTask.classList.remove('error');
+			addDate.classList.add('error');
+			alert(res.nullDate);
 			return;
 		}
 		newList();
 		addForm.reset();
+		addTask.classList.remove('error');
+		addDate.classList.remove('error');
 	});
 });
 //検索フォームーーーーーーーーーーーーーーー
@@ -184,7 +202,7 @@ function updateDate(btn, id, task, date) {
 	});
 } 
 //削除ーーーーーーーーーーーーーー4
-function deleteTodo(btn, id) { //btnがないとidが合致しない
+function deleteTodo(btn, id) {
 	if (!confirm("削除しますか？")) {
 		return;
 	}
@@ -193,9 +211,16 @@ function deleteTodo(btn, id) { //btnがないとidが合致しない
 		headers: { "X-Requested-With": "XMLHttpRequest" },
 		body: new URLSearchParams({ id: id })
 	})
-	.then(() => newList());
+	.then(res => res.json())
+	.then(res => {
+		if (res.error) {
+			alert(res.error);
+			return;
+		}
+		newList();
+		alert(res.true);
+	});
 }
-
 
 // 最新のtodoListーーーーーーーーーーーーーー
 function newList() {

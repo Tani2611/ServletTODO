@@ -9,6 +9,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import common.CommonProcess;
+import dao.TodoDao;
+import dto.Todo;
 
 @WebServlet("/StatusServlet")
 public class StatusServlet extends HttpServlet {

@@ -1,7 +1,6 @@
 package common;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -15,9 +14,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializer;
 
-import todo.Sort;
-import todo.Todo;
-import todo.TodoDao;
+import dto.Sort;
+import dto.Todo;
 
 public class CommonProcess {
 
@@ -97,31 +95,5 @@ public class CommonProcess {
 		String json = gson.toJson(todoList); //todoListをjsonにする処理。日付が出てきたら、gsonの形式に
 		response.getWriter().write(json);//レスポンスにjsonの文字列を書いて格納
 	}
-
-	//DAOの共通。微妙？ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-	public static void getDaoMethod(String methodName, Object param) throws ServletException {
-		try {
-			TodoDao dao = new TodoDao();
-			Method method = dao.getClass().getMethod(methodName, param.getClass());
-			method.invoke(dao, param);
-		} catch (Exception e) {
-			throw new ServletException(e);
-		}
-	}
-
-	//まだダメ
-	//		List<Todo> todoList = CommonProcess.getDaoTodoList("getTodoList", "sortSession", "orderSession"); 動かない
-	//	public static List<Todo> getDaoTodoList(String methodName, String sort, String order) throws ServletException {
-	//		try {
-	//			TodoDao dao = new TodoDao();
-	//			Method method = dao.getClass().getMethod(methodName, String.class, String.class);
-	//
-	//			@SuppressWarnings("unchecked")
-	//			List<Todo> todoList = (List<Todo>) method.invoke(dao, new Object[] { sort, order });
-	//			return todoList;
-	//		} catch (Exception e) {
-	//			throw new ServletException(e);
-	//		}
-	//	}
 
 }

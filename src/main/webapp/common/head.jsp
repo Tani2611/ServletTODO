@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8"%>
-<%@ page import="java.util.*, todo.TodoDao, todo.Todo, todo.Search" %>
+<%@ page import="java.util.*, dao.TodoDao, dto.Todo, dto.Search" %>
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="java.time.LocalDate, java.time.LocalTime, java.time.LocalDateTime" %>
 

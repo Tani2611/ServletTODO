@@ -82,3 +82,7 @@ thead th.showDown {
 thead th.showDown::after {
   content: "▼";
 }
+
+input.error {
+	border: 5px solid red;
+}

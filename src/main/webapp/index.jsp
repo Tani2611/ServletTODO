@@ -28,7 +28,7 @@
 				<td>
 					<form action="DeleteServlet" method="post">
 						<input type="hidden" name="id" value="<%=t.getId()%>">
-					    <button onclick="return confirm('削除しますか？');"><i class="far fa-trash-alt fa-1x icon"></i></button>
+						<button onclick="return confirm('削除しますか？');"><i class="far fa-trash-alt fa-1x icon"></i></button>
 					</form>
 				</td>
 			</tr>

@@ -11,6 +11,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import common.CommonProcess;
+import dao.TodoDao;
+import dto.Sort;
+import dto.Todo;
 
 @WebServlet("/TodoServlet")
 public class TodoServlet extends HttpServlet {
@@ -21,7 +24,6 @@ public class TodoServlet extends HttpServlet {
 		Sort sort = CommonProcess.getSort(request);
 		String msg = (String) request.getAttribute("msg");
 		
-
 		List<Todo> todoList = new ArrayList<>();
 		try {
 			todoList = new TodoDao().getTodoList(sort);
