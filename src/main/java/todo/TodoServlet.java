@@ -11,34 +11,29 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import common.CommonProcess;
-import dao.TodoDao;
+import common.CommonRepository;
 import dto.Sort;
 import dto.Todo;
 
 @WebServlet("/TodoServlet")
 public class TodoServlet extends HttpServlet {
+	private final CommonRepository repo = new CommonRepository();
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		CommonProcess.getDefaultCode(request, response);	
 		Sort sort = CommonProcess.getSort(request);
 		String msg = (String) request.getAttribute("msg");
+		boolean isAjax = "XMLHttpRequest".equals(request.getHeader("X-Requested-With"));
 		
 		List<Todo> todoList = new ArrayList<>();
-		try {
-			todoList = new TodoDao().getTodoList(sort);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		System.out.println("TodoServlet !!!!!!!!!!!");
+		todoList = repo.getTodoList(sort);
 
-		if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
-			System.out.println("TodoServlet 非同期");
+		if (isAjax) {
 			CommonProcess.getJsonList(response, todoList);
 		} else {
-			System.out.println("TodoServlet 同期");
-			request.setAttribute("todoList", todoList);
 			request.setAttribute("msg", msg);
+			request.setAttribute("todoList", todoList);
 			request.getRequestDispatcher("index.jsp").forward(request, response);
 		}
 	}

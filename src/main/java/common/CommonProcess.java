@@ -85,6 +85,45 @@ public class CommonProcess {
 		return sort;
 	}
 
+	public static boolean taskInputValidation(HttpServletRequest request, HttpServletResponse response, Todo todo, boolean isAjax, String file) throws IOException, ServletException {
+		boolean check = true;
+		if (isAjax) {
+			
+			response.setContentType("application/json; charset=UTF-8");
+			if (todo.getTask().isEmpty() && todo.getDate() == null) {
+				response.getWriter().write("{\"nullTaskDate\": \"タスクと日付が未入力です\"}");
+				check = false;
+			}else if (todo.getTask().isEmpty()) {
+				response.getWriter().write("{\"nullTask\": \"タスクが未入力です\"}");
+				check = false;
+			}else if (todo.getDate() == null) {
+				response.getWriter().write("{\"nullDate\": \"日付が未入力です\"}");
+				check = false;
+			}
+			
+		} else {
+			
+			if (todo.getTask().isEmpty() && todo.getDate() == null) {
+				request.setAttribute("msg", "タスクと日付が未入力です");
+				check = false;
+			}else if (todo.getTask().isEmpty()) {
+				request.setAttribute("msg", "タスクが未入力です");
+				check = false;
+			}else if (todo.getDate() == null) {
+				request.setAttribute("msg", "日付が未入力です");
+				check = false;
+			}
+			
+			if(!check) {
+				request.setAttribute("todo", todo);
+				request.getRequestDispatcher(file).forward(request, response);
+			} else {
+				check = true;		
+			}
+		}
+		return check;
+	}
+	
 	public static void getJsonList(HttpServletResponse response, List<Todo> todoList)
 			throws ServletException, IOException {
 		Gson gson = new GsonBuilder()// LocalDateを整形
@@ -95,5 +134,39 @@ public class CommonProcess {
 		String json = gson.toJson(todoList); //todoListをjsonにする処理。日付が出てきたら、gsonの形式に
 		response.getWriter().write(json);//レスポンスにjsonの文字列を書いて格納
 	}
+	
+	public static void responseProcess() {
+		
+	}
+	
+	public static void async(HttpServletRequest request, HttpServletResponse response, boolean success) throws ServletException, IOException {
+		response.setContentType("application/json; charset=UTF-8");
+		if(success) {
+			response.getWriter().write("{\"success\": true}");
+		} else {
+			response.getWriter().write("{\"success\": false}");
+		}		
+	}
+	
+	public static void sync(HttpServletRequest request, HttpServletResponse response, String msg) throws ServletException, IOException {
+		request.setAttribute("msg", msg);
+		request.getRequestDispatcher("TodoServlet").forward(request, response);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 
 }

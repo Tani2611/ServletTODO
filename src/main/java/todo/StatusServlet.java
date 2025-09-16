@@ -9,28 +9,26 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import common.CommonProcess;
-import dao.TodoDao;
+import common.CommonRepository;
 import dto.Todo;
 
 @WebServlet("/StatusServlet")
 public class StatusServlet extends HttpServlet {
+	private final CommonRepository repo = new CommonRepository();
+	
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		CommonProcess.getDefaultCode(request, response);
 		Todo todo = CommonProcess.getParameter(request);
+		boolean isAjax = "XMLHttpRequest".equals(request.getHeader("X-Requested-With"));
 
-		try {
-			new TodoDao().updateStatus(todo);
-		} catch (Exception e) {
-			throw new ServletException(e);
-		}
+		repo.updateStatus(todo);
 
-		if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
-			System.out.println("StatusServlet 非同期");
+		if (isAjax) {
+			CommonProcess.async(request, response, true);
 		} else {
-			System.out.println("StatusServlet 同期");
-			response.sendRedirect(request.getContextPath() + "/TodoServlet");
+			CommonProcess.sync(request, response, "状態変更しました");
 		}
 
 	}

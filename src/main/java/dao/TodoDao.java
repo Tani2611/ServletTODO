@@ -19,8 +19,7 @@ public class TodoDao {
 	String URL = "jdbc:postgresql://localhost:5432/servlet_todo";
 	String ID = "mizutani";
 	String PS = "mizutani";
-
-	List<Todo> todoList = new ArrayList<>();
+	List<Todo> todoList = new ArrayList<>(); //new TodoDao のたびに呼ばれる。
 
 	public void insert(Todo todo) throws Exception {
 		try (Connection con = DriverManager.getConnection(URL, ID, PS); // DB接続
@@ -52,16 +51,17 @@ public class TodoDao {
 		}
 	}
 
-	public boolean delete(Todo todo) throws Exception {
+	// TODO: DAOはDB操作のみにする　〇
+	public int delete(Todo todo) throws Exception {
 		try (Connection con = DriverManager.getConnection(URL, ID, PS);
 				PreparedStatement st = con.prepareStatement("DELETE FROM todo WHERE id = ?");) {
 
 			st.setInt(1, todo.getId());
 			int count = st.executeUpdate(); //insert update delte用
-			
+
 			System.out.println("削除件数：" + count);
-			return count == 0 ? false : true;
-			
+			return count;
+
 		}
 	}
 
@@ -71,17 +71,18 @@ public class TodoDao {
 
 			st.setInt(1, todo.getId());
 
-			try(ResultSet rs = st.executeQuery()) {
-				return createTodo(rs);				
+			try (ResultSet rs = st.executeQuery()) {
+				return createTodo(rs);
 			}
 		}
 	}
 
 	public List<Todo> getTodoList(Sort sort) throws Exception {
 		Class.forName(DRIVER);
-		String sql = "SELECT * FROM todo ORDER BY" + " " + sort.sort() + " " + sort.order() + "," + "id" + " " + "DESC";
+		String safeSort = sortValidation(sort.sort());
+		String safeOrder = orderValidation(sort.order());
 		try (Connection con = DriverManager.getConnection(URL, ID, PS);
-				PreparedStatement st = con.prepareStatement(sql);
+				PreparedStatement st = con.prepareStatement("SELECT * FROM todo ORDER BY" + " " + safeSort + " " + safeOrder + "," + "id" + " " + "DESC");
 				ResultSet rs = st.executeQuery();) {
 
 			return createTodoList(rs);
@@ -94,6 +95,8 @@ public class TodoDao {
 		Date startDate = null;
 		Date endDate = null;
 		String status = null;
+		String safeSort = sortValidation(sort.sort());
+		String safeOrder = orderValidation(sort.order());
 
 		if (searchTodo.task() != null) {
 			task = searchTodo.task();
@@ -144,11 +147,11 @@ public class TodoDao {
 			params.add(endDate);
 		}
 
-		if(!nullStatus && !status.isEmpty()) {
+		if (!nullStatus && !status.isEmpty()) {
 			sqlList.add(" \"status\" = ?");
 			if (trueStatus) {
 				params.add(true);
-			} else if(falseStatus){
+			} else if (falseStatus) {
 				params.add(false);
 			}
 		}
@@ -158,7 +161,7 @@ public class TodoDao {
 			sqlBuilder.append(String.join(" AND", sqlList));
 		}
 
-		sqlBuilder.append(" ORDER BY").append(" " + sort.sort()).append(" " + sort.order());
+		sqlBuilder.append(" ORDER BY").append(" " + safeSort).append(" " + safeOrder);
 
 		System.out.println("SQL = " + sqlBuilder);
 		System.out.println("値 = " + params);
@@ -170,27 +173,28 @@ public class TodoDao {
 				st.setObject(i + 1, params.get(i));
 			}
 
-			try(ResultSet rs = st.executeQuery()) {
-				return createTodoList(rs);				
+			try (ResultSet rs = st.executeQuery()) {
+				return createTodoList(rs);
 			}
 
 		}
 	}
 
 	public List<Todo> sort(Sort sort) throws Exception {
-		String sql = "SELECT * FROM todo ORDER BY" + " " + sort.sort() + " " + sort.order() + "," + "id" + " " + "DESC"; //ここ！SQLインジェクションの回避
-		System.out.println(sql);
+		String safeSort = sortValidation(sort.sort());
+		String safeOrder = orderValidation(sort.order());
 		try (Connection con = DriverManager.getConnection(URL, ID, PS);
-				PreparedStatement st = con.prepareStatement(sql);
+				PreparedStatement st = con.prepareStatement("SELECT * FROM todo ORDER BY" + " " + safeSort + " " + safeOrder + "," + "id DESC");
 				ResultSet rs = st.executeQuery();) {
 
-			return createTodoList(rs);
+				return createTodoList(rs);
+			
 		}
 	}
-	
+
 	public Todo createTodo(ResultSet rs) throws SQLException {
 		Todo todo = new Todo();
-		while(rs.next()) {
+		while (rs.next()) {
 			int id = rs.getInt("id");
 			String task = rs.getString("task");
 			LocalDate date = rs.getDate("date").toLocalDate(); // Date ↔ LocalDate
@@ -199,9 +203,12 @@ public class TodoDao {
 		}
 		return todo;
 	}
-	
+
 	public List<Todo> createTodoList(ResultSet rs) throws SQLException {
-		while(rs.next()) {
+		List<Todo> todoList = new ArrayList<>(); 
+		// ↑ これしないとダメな理由
+		// → 各サーブレットでrepoインスタンスを作ると、2回目以降でDAOがnewされず、Listがリセットされないため、一覧の後ろに足していく形になってしまうのを回避するため。
+		while (rs.next()) {
 			int id = rs.getInt("id");
 			String task = rs.getString("task");
 			LocalDate date = rs.getDate("date").toLocalDate(); // Date ↔ LocalDate
@@ -210,5 +217,17 @@ public class TodoDao {
 		}
 		return todoList;
 	}
+	
+	public String sortValidation(String sort) {
+		return switch (sort) {
+			case "task" -> "task";
+			case "date" -> "date";
+			case "status" -> "status";
+			default -> "id";
+		};
+	}
+	
+	public String orderValidation(String order) {
+		return order.equals("DESC") ? "DESC" : "ASC";
+	}
 }
-

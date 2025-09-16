@@ -171,9 +171,16 @@ function updateTask(btn, id, task, date) {
 	})
 	.then(res => res.json())
 	.then(res => {
-		if(res.error) {
-			alert(res.error);
-			editTaskBox(td, id, task, date);
+		if (res.nullTaskDate) {
+			alert(res.nullTaskDate);
+			return;
+		}
+		if (res.nullTask) {
+			alert(res.nullTask);
+			return;
+		}
+		if (res.nullDate) {
+			alert(res.nullDate);
 			return;
 		}
 		newList();
@@ -193,34 +200,47 @@ function updateDate(btn, id, task, date) {
 	})
 	.then(res => res.json())
 	.then(res => {
-		if(res.error) {
-			alert(res.error);
-			editDateBox(td, id, task, date);
+		if (res.nullTaskDate) {
+			alert(res.nullTaskDate);
+			return;
+		}
+		if (res.nullTask) {
+			alert(res.nullTask);
+			return;
+		}
+		if (res.nullDate) {
+			alert(res.nullDate);
 			return;
 		}
 		newList();
 	});
 } 
+// TODO: 「削除」「todoList生成」で関数を分ける　〇
 //削除ーーーーーーーーーーーーーー4
-function deleteTodo(btn, id) {
+async function handleDeleteClick(id) {
 	if (!confirm("削除しますか？")) {
 		return;
 	}
-	fetch("DeleteServlet", {
+	const result = await deleteTodo(id);
+	if(result) {
+		alert("削除完了");
+		newList();
+	} else {
+		alert("削除できませんでした");
+	}
+}
+	
+async function deleteTodo(id) {
+	let res = await fetch("DeleteServlet", {
 		method: "POST",
 		headers: { "X-Requested-With": "XMLHttpRequest" },
 		body: new URLSearchParams({ id: id })
 	})
-	.then(res => res.json())
-	.then(res => {
-		if (res.error) {
-			alert(res.error);
-			return;
-		}
-		newList();
-		alert(res.true);
-	});
+	res = await res.json();
+	return res.success === true;
 }
+//async   必ずPromiseを返す関数になる。
+//await    Promiseが終わるのを待って結果を取り出す。asyncの中でしか使えない。
 
 // 最新のtodoListーーーーーーーーーーーーーー
 function newList() {
@@ -230,9 +250,8 @@ function newList() {
 	})
 	.then(res => res.json())
 	.then(createTodoList);
-	colorDates();
 }
-//サーブレット　→　res　→　todoListを生成ーーー検索と並び替えのみーーーーーーーーー
+//サーブレット　→　res　→　todoListを生成ーーー検索と並び替えのみーーーーーーーーー;
 function createTodoList (res) {
 		const tbody = document.querySelector("tbody");
 		tbody.innerHTML = ""; 
@@ -243,13 +262,13 @@ function createTodoList (res) {
 		});
 		colorDates();
 }
-//タスクリスト表示HTMLーーーーーーーーーーーーーー
+//タスクリスト表示HTMLーーーーーーーーーーーーーー;
 function createHTML(t) {
 	return `
-		<td><input type="checkbox" name="status" value="true" ${t.status ? "checked" : ""} onchange="updateStatus('${t.id}', this.checked)"></td>
+		<td><input type="checkbox" name="status" value="true" ${t.status ? "checked" : ""} onchange="updateStatus(${t.id}, this.checked)"></td>
 		<td>${t.id}</td>
-		<td><button type="button" onclick="editTaskBox(this, '${t.id}', '${t.task}', '${t.date}')">${t.task}</button></td>
-		<td><button class="date" type="button" onclick="editDateBox(this, '${t.id}', '${t.task}', '${t.date}')">${t.date}</button></td>
-		<td><button type="button" onclick="deleteTodo(this, '${t.id}')"><i class="far fa-trash-alt fa-1x icon"></i></button></td>
-	`;
+		<td><button type="button" onclick="editTaskBox(this, ${t.id}, '${t.task}', '${t.date}')">${t.task}</button></td>
+		<td><button class="date" type="button" onclick="editDateBox(this, ${t.id}, '${t.task}', '${t.date}')">${t.date}</button></td>
+		<td><button type="button" onclick="handleDeleteClick(${t.id})"><i class="far fa-trash-alt fa-1x icon"></i></button></td>
+	`
 }
